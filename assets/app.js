@@ -23,6 +23,14 @@
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) { film.pause(); pause.textContent = 'Play film'; }
   }
 
+  // Home film has no pause button: start it as soon as it can play, in case the browser holds back autoplay
+  if (film && !pause && film.matches('.hero__film')) {
+    const start = () => { if (film.paused) film.play().catch(() => {}); };
+    film.addEventListener('canplay', start);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) start(); });
+    start();
+  }
+
   // Film captions: approved cue text and timing (108 s loop), shown as live text so they sit above the shading
   const cap = document.querySelector('[data-film-cap]');
   if (film && cap) {
