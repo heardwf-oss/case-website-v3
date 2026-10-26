@@ -77,10 +77,11 @@
   const rows = document.querySelectorAll('.svc[data-pic]');
   if (pic) {
     // The current picture stays on screen until the next one is fully loaded, so the frame is never blank
+    const decoded = (img) => Promise.race([img.decode ? img.decode().catch(() => {}) : 0, new Promise((r) => setTimeout(r, 300))]);
     const ready = {};
     const load = (src) => ready[src] || (ready[src] = new Promise((done) => {
       const i = new Image();
-      i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(done);
+      i.onload = () => decoded(i).then(done);
       i.onerror = done;
       i.src = src;
     }));
@@ -98,7 +99,7 @@
       load(src).then(() => {
         if (want !== src) return;
         back.src = src;
-        (back.decode ? back.decode().catch(() => {}) : Promise.resolve()).then(() => {
+        decoded(back).then(() => {
           if (want !== src) return;
           back.style.zIndex = ++z;
           back.getBoundingClientRect();
