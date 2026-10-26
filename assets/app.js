@@ -106,7 +106,9 @@
           back.classList.remove('is-back');
           const old = front;
           front = back; back = old;
-          setTimeout(() => { if (old !== front) old.classList.add('is-back'); }, 450);
+          const hide = () => { if (old !== front) old.classList.add('is-back'); };
+          front.addEventListener('transitionend', hide, { once: true });
+          setTimeout(hide, 1200);
         });
       });
     }));
