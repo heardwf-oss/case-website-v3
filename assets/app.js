@@ -49,7 +49,7 @@
     ];
     const [k, t] = cap.querySelectorAll('p');
     let shown = -1, timer = 0;
-    const tick = () => {
+    const update = () => {
       const now = film.currentTime % 108;
       const i = cues.findIndex(([a, b]) => now >= a && now < b);
       if (i !== shown) {
@@ -58,9 +58,10 @@
         cap.classList.add('is-off');
         if (i >= 0) timer = setTimeout(() => { k.textContent = cues[i][2]; t.textContent = cues[i][3]; cap.classList.remove('is-off'); }, k.textContent ? 300 : 0);
       }
-      requestAnimationFrame(tick);
     };
+    const tick = () => { update(); requestAnimationFrame(tick); };
     requestAnimationFrame(tick);
+    film.addEventListener('timeupdate', update);
   }
 
   // Home services: picture follows the service under the pointer
