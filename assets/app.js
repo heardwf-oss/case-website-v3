@@ -35,7 +35,7 @@
   const cap = document.querySelector('[data-film-cap]');
   if (film && cap) {
     const cues = [
-      [0.6, 6.5, 'CASE Consultants', 'Civil and Structural Engineering in Torbay since 1988'],
+      [0.6, 6.5, 'CASE Consultants', 'In Torbay since 1988'],
       [8.0, 11.61, 'Extensions and alterations', 'Structural and condition surveys'],
       [11.61, 15.27, 'Extensions and alterations', 'Temporary works: needles and props'],
       [15.27, 24.0, 'Extensions and alterations', 'Steel, timber and masonry design'],
@@ -76,14 +76,40 @@
   const pic = document.querySelector('[data-svc-pic]');
   const rows = document.querySelectorAll('.svc[data-pic]');
   if (pic) {
+    // The current picture stays on screen until the next one is fully loaded, so the frame is never blank
+    const ready = {};
+    const load = (src) => ready[src] || (ready[src] = new Promise((done) => {
+      const i = new Image();
+      i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(done);
+      i.onerror = done;
+      i.src = src;
+    }));
+    // Two stacked pictures: the new one fades in on top of the old one, then they swap roles
+    let front = pic, back = pic.cloneNode();
+    back.removeAttribute('data-svc-pic');
+    back.classList.add('is-back');
+    pic.after(back);
+    let want = pic.getAttribute('src'), z = 1;
     rows.forEach((row) => row.addEventListener('mouseenter', () => {
       rows.forEach((r) => r.classList.toggle('is-on', r === row));
       const src = row.dataset.pic;
-      if (pic.getAttribute('src') === src) return;
-      pic.classList.add('is-swapping');
-      setTimeout(() => { pic.src = src; pic.onload = () => pic.classList.remove('is-swapping'); }, 200);
+      if (want === src) return;
+      want = src;
+      load(src).then(() => {
+        if (want !== src) return;
+        back.src = src;
+        (back.decode ? back.decode().catch(() => {}) : Promise.resolve()).then(() => {
+          if (want !== src) return;
+          back.style.zIndex = ++z;
+          back.getBoundingClientRect();
+          back.classList.remove('is-back');
+          const old = front;
+          front = back; back = old;
+          setTimeout(() => { if (old !== front) old.classList.add('is-back'); }, 450);
+        });
+      });
     }));
-    rows.forEach((r) => { const i = new Image(); i.src = r.dataset.pic; });
+    rows.forEach((r) => load(r.dataset.pic));
   }
 
   // Projects filter: rows run pair, pair, single full-width, repeating; pairs alternate wide-narrow and narrow-wide; a lone last tile spans the row (same rule as build.mjs)
