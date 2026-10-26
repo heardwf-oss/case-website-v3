@@ -35,7 +35,7 @@
   const cap = document.querySelector('[data-film-cap]');
   if (film && cap) {
     const cues = [
-      [0.6, 6.5, 'CASE Consultants', 'In Torbay since 1988'],
+      [0.6, 6.5, 'CASE Consultants', 'Civil and Structural Engineers since 1988'],
       [8.0, 11.61, 'Extensions and alterations', 'Structural and condition surveys'],
       [11.61, 15.27, 'Extensions and alterations', 'Temporary works: needles and props'],
       [15.27, 24.0, 'Extensions and alterations', 'Steel, timber and masonry design'],
