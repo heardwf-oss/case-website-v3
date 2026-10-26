@@ -85,12 +85,10 @@
       i.onerror = done;
       i.src = src;
     }));
-    // Two stacked pictures: the new one fades in on top of the old one, then they swap roles
-    let front = pic, back = pic.cloneNode();
-    back.removeAttribute('data-svc-pic');
-    back.classList.add('is-back');
-    pic.after(back);
-    let want = pic.getAttribute('src'), z = 1;
+    // Each new picture fades in on top; the ones underneath are removed only once it is fully in,
+    // so a fully visible picture always sits at the bottom of the stack
+    const fig = pic.parentNode;
+    let want = pic.getAttribute('src');
     rows.forEach((row) => row.addEventListener('mouseenter', () => {
       rows.forEach((r) => r.classList.toggle('is-on', r === row));
       const src = row.dataset.pic;
@@ -98,17 +96,18 @@
       want = src;
       load(src).then(() => {
         if (want !== src) return;
-        back.src = src;
-        decoded(back).then(() => {
-          if (want !== src) return;
-          back.style.zIndex = ++z;
-          back.getBoundingClientRect();
-          back.classList.remove('is-back');
-          const old = front;
-          front = back; back = old;
-          const hide = () => { if (old !== front) old.classList.add('is-back'); };
-          front.addEventListener('transitionend', hide, { once: true });
-          setTimeout(hide, 1200);
+        const next = pic.cloneNode();
+        next.removeAttribute('data-svc-pic');
+        next.classList.add('is-back');
+        next.src = src;
+        fig.appendChild(next);
+        decoded(next).then(() => {
+          if (want !== src) { next.remove(); return; }
+          next.getBoundingClientRect();
+          next.classList.remove('is-back');
+          const settle = () => { while (next.isConnected && next.previousElementSibling) next.previousElementSibling.remove(); };
+          next.addEventListener('transitionend', settle, { once: true });
+          setTimeout(settle, 1200);
         });
       });
     }));
